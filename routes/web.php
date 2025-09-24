@@ -8,3 +8,6 @@ Route::get('/', function () {
 Route::get('/login', function () {
     return view('login');   // your Blade form
 });
+Route::get('/dashboard', function () {
+    return view('dashboard');   // your Blade form
+});
