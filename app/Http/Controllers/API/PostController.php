@@ -2,25 +2,20 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Api\BaseController;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class PostController extends Controller
+class PostController extends BaseController
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $data['posts'] = Post::all();
-
-        return response()->json([
-            'status' => 'true',
-            'message' => 'All Post Data',
-            'data' => '$data'
-        ], 200);
+        $posts = Post::all();
+        return $this->sendResponse($posts, 'All Post Data');
     }
 
     /**
@@ -33,16 +28,12 @@ class PostController extends Controller
             [
                 'title' => 'required',
                 'description' => 'required',
-                'image' => 'required|mimes:png,jpg,jpeg,gif|max:2048', // fixed "mimes"
+                'image' => 'required|mimes:png,jpg,jpeg,gif|max:2048',
             ]
         );
 
         if ($validateUser->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validateUser->errors()->all()
-            ], 422);
+            return $this->sendError('Validation failed', $validateUser->errors()->all(), 422);
         }
 
         // ✅ Handle file upload
@@ -60,35 +51,22 @@ class PostController extends Controller
             'image' => $imageName,
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Post created successfully',
-            'data' => $post
-        ], 201);
+        return $this->sendResponse($post, 'Post created successfully', 201);
     }
-
 
     /**
      * Display the specified resource.
      */
-
     public function show(string $id)
     {
         $post = Post::find($id);
 
         if (!$post) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Post not found',
-            ], 404);
+            return $this->sendError('Post not found', [], 404);
         }
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $post
-        ], 200);
+        return $this->sendResponse($post, 'Post retrieved successfully');
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -100,25 +78,18 @@ class PostController extends Controller
             [
                 'title' => 'required',
                 'description' => 'required',
-                'image' => 'nullable|mimes:png,jpg,jpeg,gif|max:2048', // image optional rakha
+                'image' => 'nullable|mimes:png,jpg,jpeg,gif|max:2048',
             ]
         );
 
         if ($validateUser->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validateUser->errors()->all()
-            ], 422);
+            return $this->sendError('Validation failed', $validateUser->errors()->all(), 422);
         }
 
         // ✅ Find post
         $post = Post::find($id);
         if (!$post) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Post not found'
-            ], 404);
+            return $this->sendError('Post not found', [], 404);
         }
 
         // ✅ Default image = old one
@@ -126,7 +97,6 @@ class PostController extends Controller
 
         // ✅ If new image uploaded, replace old
         if ($request->hasFile('image')) {
-            // optional: delete old file if exists
             if ($post->image && file_exists(public_path('uploads/' . $post->image))) {
                 unlink(public_path('uploads/' . $post->image));
             }
@@ -143,40 +113,27 @@ class PostController extends Controller
             'image' => $imageName,
         ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Post updated successfully',
-            'data' => $post
-        ], 200);
+        return $this->sendResponse($post, 'Post updated successfully');
     }
-
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
-        // Find the post by ID
         $post = Post::find($id);
 
         if (!$post) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Post not found'
-            ], 404);
+            return $this->sendError('Post not found', [], 404);
         }
 
-        // If post has an image, delete it from storage
-        if ($post->image && file_exists(public_path('images/' . $post->image))) {
-            unlink(public_path('images/' . $post->image));
+        // Delete image if exists
+        if ($post->image && file_exists(public_path('uploads/' . $post->image))) {
+            unlink(public_path('uploads/' . $post->image));
         }
 
-        // Delete the post from DB
         $post->delete();
 
-        return response()->json([
-            'status' => 200,
-            'message' => 'Post deleted successfully'
-        ], 200);
+        return $this->sendResponse([], 'Post deleted successfully');
     }
 }
