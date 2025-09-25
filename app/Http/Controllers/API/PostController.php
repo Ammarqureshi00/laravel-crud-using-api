@@ -15,7 +15,8 @@ class PostController extends BaseController
     public function index()
     {
         $posts = Post::all();
-        return $this->sendResponse($posts, 'All Post Data');
+        return view('allposts', compact('posts'));
+        // return $this->sendResponse($posts, 'All Post Data');
     }
 
     /**
@@ -91,6 +92,7 @@ class PostController extends BaseController
         if (!$post) {
             return $this->sendError('Post not found', [], 404);
         }
+        return view('edit', compact('post'));
 
         // ✅ Default image = old one
         $imageName = $post->image;

@@ -58,13 +58,13 @@
       let email = $('#email').val();
       let password = $('#password').val();
       
-      $.ajax({
-      url: "/api/login",
-      type: "POST",
-      data: JSON.stringify({
-      email: email,
-      password: password
-      }),
+            $.ajax({
+            url: "/api/login",
+            type: "POST",
+            data: JSON.stringify({
+            email: email,
+            password: password
+            }),
       contentType: "application/json",
       success: function (response) {
       $('#success-message').text("Login successful!").show();
@@ -75,7 +75,7 @@
       }
       
       setTimeout(function () {
-      window.location.href = "/dashboard";
+      window.location.href = "/allposts";
       }, 1000);
       },
       error: function (xhr) {
